@@ -28,8 +28,9 @@ jobs:
 
       - name: Garantir arquivos nativos do Android
         run: |
+          sed -i 's/^name:.*/name: ecomapa_df/g' pubspec.yaml || true
           sed -i 's/intl:.*/intl: ^0.20.3/g' pubspec.yaml || true
-          flutter create --no-pub --platforms=android --org com.ecomapa .
+          flutter create --no-pub --platforms=android --org com.ecomapa --project-name ecomapa_df .
           flutter pub get
           chmod +x android/gradlew || true
           yes | flutter doctor --android-licenses || true

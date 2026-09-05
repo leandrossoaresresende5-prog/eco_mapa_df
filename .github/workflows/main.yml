@@ -28,9 +28,19 @@ jobs:
 
       - name: Garantir arquivos nativos do Android
         run: |
+          # Se os arquivos foram enviados dentro de uma subpasta, move para a raiz
+          if [ ! -d "lib" ]; then
+            SUBDIR=$(find . -maxdepth 2 -type d -name "lib" | head -n 1 | sed 's|/lib||')
+            if [ -n "$SUBDIR" ] && [ "$SUBDIR" != "." ]; then
+              echo "Movendo arquivos de $SUBDIR para a raiz..."
+              cp -rn "$SUBDIR"/* . || true
+            fi
+          fi
           sed -i 's/^name:.*/name: ecomapa_df/g' pubspec.yaml || true
           sed -i 's/intl:.*/intl: ^0.20.3/g' pubspec.yaml || true
           flutter create --no-pub --platforms=android --org com.ecomapa --project-name ecomapa_df .
+          # Garante que o código do EcoMapa DF não seja sobrescrito pelo contador de exemplo
+          git checkout -- lib/ 2>/dev/null || true
           flutter pub get
           chmod +x android/gradlew || true
           yes | flutter doctor --android-licenses || true

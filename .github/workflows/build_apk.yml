@@ -26,7 +26,7 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Garantir arquivos nativos do Android e Dependências
+      - name: Preparar ferramentas e dependências
         run: |
           for z in *.zip; do
             if [ -f "$z" ]; then
@@ -60,7 +60,12 @@ jobs:
           sed -i 's/targetSdk = .*/targetSdk = 36/g' android/app/build.gradle* 2>/dev/null || true
           sed -i 's/targetSdkVersion .*/targetSdkVersion 36/g' android/app/build.gradle* 2>/dev/null || true
 
+          # Injeta permissões de GPS e Câmera no AndroidManifest.xml
           sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.CAMERA"/>' android/app/src/main/AndroidManifest.xml 2>/dev/null || true
+
+          # Auto-correção: substitui qualquer 'MainAxisAlignment.between' por 'MainAxisAlignment.spaceBetween'
+          sed -i 's/MainAxisAlignment.between/MainAxisAlignment.spaceBetween/g' lib/main.dart 2>/dev/null || true
+          find lib/ -name "*.dart" -exec sed -i 's/MainAxisAlignment.between/MainAxisAlignment.spaceBetween/g' {} + 2>/dev/null || true
 
           chmod +x android/gradlew || true
           yes | flutter doctor --android-licenses || true

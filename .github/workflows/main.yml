@@ -1,0 +1,44 @@
+name: Compilar APK EcoMapa DF
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Gerar APK Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Configurar Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Garantir arquivos nativos do Android
+        run: |
+          sed -i 's/intl:.*/intl: ^0.20.3/g' pubspec.yaml || true
+          flutter create --no-pub --platforms=android --org com.ecomapa .
+          flutter pub get
+          chmod +x android/gradlew || true
+          yes | flutter doctor --android-licenses || true
+
+      - name: Compilar APK Release (Instalador Android)
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Disponibilizar APK para Download
+        uses: actions/upload-artifact@v4
+        with:
+          name: EcoMapa-DF-Instalador
+          path: build/app/outputs/flutter-apk/app-release.apk
